@@ -1,6 +1,7 @@
 <?php
 namespace Home\Controller;
 
+use Home\Model\RoleModel;
 use Think\Controller;
 use Home\Model\UserModel;
 use Org\Util\Rbac;
@@ -8,6 +9,35 @@ use Think\Model;
 
 class UserController extends BaseController
 {
+
+    public function __construct()
+    {
+        C('NOT_AUTH_ACTION',C('NOT_AUTH_ACTION').",userInfo");
+        parent::__construct();
+
+    }
+
+
+
+    public function userInfo(){
+        $userid = I('userid');
+        //$userModel = new UserModel();
+        //$userModel->getUserInfo($userid);
+        $roleModel = new  RoleModel();
+        $roleList = $roleModel->getRoleList($userid);
+        $roles = array_column($roleList,'id');
+        $data = array(
+            'roles' => $roles
+        );
+        echoJson('0000','sucess',$data);
+
+    }
+
+
+
+
+
+
     /**
      * 用户管理页面
      * 

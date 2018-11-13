@@ -3,6 +3,21 @@ namespace Home\Model;
 
 class RoleModel extends BaseModel
 {
+
+    /**
+     * 获取角色列表
+     * @return mixed
+     */
+    public function getRoleList($userid){
+        $role = M('Role');
+        $where = array('status'=>'1');
+        if ($userid){
+            $where['userid'] = $userid;
+        }
+        $roleList  = $role->where($where)->select();
+        return $roleList;
+    }
+
     public function addRole($param)
     {
         $sql = 'INSERT INTO t_role(

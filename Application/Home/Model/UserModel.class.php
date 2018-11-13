@@ -6,6 +6,24 @@ use Think\Page;
 class UserModel extends Model
 {
 
+    public function getUserInfo($userid){
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public function get_user_list ($role_id,$nickname)
     {
         $paramer = array(

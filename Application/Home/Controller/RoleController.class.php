@@ -1,6 +1,8 @@
 <?php
 namespace Home\Controller;
 
+use Home\Model\RoleModel;
+
 class RoleController extends BaseController
 {
 
@@ -9,17 +11,9 @@ class RoleController extends BaseController
      */
     public function roleList ()
     {
-        $Role = M('Role');
-        $Roleinfodata = $Role->where(array('status'=>'1'))->select();
-        foreach ($Roleinfodata as $key => $value) {
-            $roleinfolist[$key]['id'] = $value['id'];
-            $roleinfolist[$key]['name'] = $value['name'];
-            $roleinfolist[$key]['status'] = $value['status'];
-            $roleinfolist[$key]['remark'] = $value['remark'];
-        }
-        $roleinfolist = $this->fixRoleList($roleinfolist);
-        $this->assign('roleinfolist', $roleinfolist);
-        $this->display();
+        $model = new RoleModel();
+        $roleList = $model->getRoleList();
+        echoJson('0000','角色列表获取成功',$roleList);
     }
     
     public function fixRoleList($list){
