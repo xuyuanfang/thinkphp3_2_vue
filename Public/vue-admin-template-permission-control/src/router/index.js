@@ -142,12 +142,24 @@ export const asyncRouterMap = [
       }
     ]
   },
+  {
+    path: '/role',
+    component: Layout,
+    children: [
+    {
+        path: 'list',
+          name: 'Form',
+          component: () => import('@/views/role/list'),
+          meta: { title: '角色列表', icon: 'form' }
+     }
+    ]
+  },
 
   { path: '*', redirect: '/404', hidden: true }
 ]
 
 export default new Router({
-  //mode: 'history', //后端支持可开
+  // mode: 'history', //后端支持可开
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRouterMap
 })
