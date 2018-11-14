@@ -13,42 +13,24 @@ class BaseController extends Controller
     {
         parent::__construct();
         // $self_url = $_SERVER['PHP_SELF'];
-        $this->saveLog();
     }
 
-    public function saveLog ()
-    {
-    	// $self_url = str_replace("index.php/", "", $self_url);
-    	// $self_url = ltrim($self_url,"/");
-    	// module 业务名称 action 业务模块 function 操作
-    	// list (,$module, $action,$function) = explode('/', $self_url);
-    	$module = MODULE_NAME;
-    	$action = CONTROLLER_NAME;
-    	$function = ACTION_NAME;
-    
-    	$this->getNowPath();
-    
-    
-    	
-
-    }
     private function getNowPath ()
     {
         $module = MODULE_NAME;
         $action = CONTROLLER_NAME;
         $function = ACTION_NAME;
         
-        if (\Org\Util\Rbac::check('modify',$action,$module)){
-            $this->assign('my_modify_btn','1');
-        }else {
-            $this->assign('my_modify_btn','0');
+        if (\Org\Util\Rbac::check('modify', $action, $module)) {
+            $this->assign('my_modify_btn', '1');
+        } else {
+            $this->assign('my_modify_btn', '0');
         }
-        if (\Org\Util\Rbac::check('del',$action,$module)){
-            $this->assign('my_del_btn','1');
-        }else {
-            $this->assign('my_del_btn','0');
-        }        
-
+        if (\Org\Util\Rbac::check('del', $action, $module)) {
+            $this->assign('my_del_btn', '1');
+        } else {
+            $this->assign('my_del_btn', '0');
+        }
         
         $NOW_MENU = "/{$module}/$action/$function";
         $list = C('MENU');
@@ -62,35 +44,32 @@ class BaseController extends Controller
         }
         
         $node = M("Node");
-        $moduleres = $node->where(" name like '" . $module . "'  AND level ='1' ")->find();
+        $moduleres = $node->where(
+                " name like '" . $module . "'  AND level ='1' ")->find();
         $module = $moduleres['title'];
         
-        if (isset($moduleres['id']) && $moduleres['id']){
+        if (isset($moduleres['id']) && $moduleres['id']) {
             
-            $resaction = $node->where(" name like '" . $action . "'  AND pid={$moduleres['id']}  AND level ='2' ")->find();
+            $resaction = $node->where(
+                    " name like '" . $action .
+                             "'  AND pid={$moduleres['id']}  AND level ='2' ")->find();
             $action = $resaction['title'];
             
-            if (isset($resaction['id']) && $resaction['id']){
-                $function = $node->where(" name like '" . $function . "' AND pid={$resaction['id']} AND level ='3' ")->find();
+            if (isset($resaction['id']) && $resaction['id']) {
+                $function = $node->where(
+                        " name like '" . $function .
+                                 "' AND pid={$resaction['id']} AND level ='3' ")->find();
                 $function = $function['title'];
-            }else{
+            } else {
                 $function = '';
             }
-            
-        }else {
+        } else {
             $action = '';
             $function = '';
         }
         
-        
-        
-        
         $this->assign('NOW_PATH', $module . " / " . $action . " / " . $function);
         $this->assign('page_title', $function);
-        
-        
-        
-        
     }
 
     private function get_now_menu ($NOW_MENU, $list)
@@ -103,7 +82,7 @@ class BaseController extends Controller
                 $childs = $val['childs'];
                 foreach ($childs as $k => $v) {
                     if (isset($v['childs']) && $v['childs']) {
-                        $res = $this->get_now_menu($NOW_MENU,
+                        $res = $this->get_now_menu($NOW_MENU, 
                                 array(
                                         $v
                                 ));
@@ -135,6 +114,11 @@ class BaseController extends Controller
 
     public function _initialize ()
     {
+        // 获取菜单信息
+        $this->menu();
+        
+        return true;
+        
         // 用户权限检查
         if (C('USER_AUTH_ON') &&
                  ! in_array(CONTROLLER_NAME, explode(',', C('NOT_AUTH_MODULE')))) {
@@ -153,7 +137,7 @@ class BaseController extends Controller
                         redirect(C('RBAC_ERROR_PAGE'));
                     } else {
                         if (C('GUEST_AUTH_ON')) {
-                            $this->assign('jumpUrl',
+                            $this->assign('jumpUrl', 
                                     PHP_FILE . C('USER_AUTH_GATEWAY'));
                         }
                         // 提示错误信息
@@ -162,17 +146,14 @@ class BaseController extends Controller
                 }
             }
         }
-        //获取菜单信息
+        // 获取菜单信息
         $this->menu();
-
     }
-
-
 
     /**
      * 取证书KEY
      *
-     * @param <type> $cert
+     * @param <type> $cert            
      * @return <type>
      */
     protected function get_cert_md5 ($cert)
@@ -216,7 +197,7 @@ class BaseController extends Controller
      */
     protected function menu ()
     {
-    	$a = $_SESSION;
+        $a = $_SESSION;
         if (isset($_SESSION[C('USER_AUTH_KEY')])) {
             // 显示菜单项
             $menu = array();
@@ -255,22 +236,22 @@ class BaseController extends Controller
                         $link = $v['link'];
                         list (, $module_c, $action_c) = explode('/', $link);
                         
-                        if ((isset($accessList[strtoupper($module_c)][strtoupper($action_c)])
-                                ||isset($_SESSION['super_admin']))) {
+                        if ((isset(
+                                $accessList[strtoupper($module_c)][strtoupper(
+                                        $action_c)]) ||
+                                 isset($_SESSION['super_admin']))) {
                             
-                            $res = $this->get_menu($v['childs'],
-                                    $accessList);
+                            $res = $this->get_menu($v['childs'], $accessList);
                             if (isset($res) && $res) {
                                 $v['childs'] = $res;
                                 $v['access'] = 1;
                                 $childs[$k] = $v;
                             }
-                          
                         }
                     } else {
                         $link = $v['link'];
                         if (preg_match_all(
-                                "/^\/([\w]+[^\/])\/([\w]+[^\/])\/([\w]+[^\/|\?])/",
+                                "/^\/([\w]+[^\/])\/([\w]+[^\/])\/([\w]+[^\/|\?])/", 
                                 $link, $matches)) {
                             $module = $matches[1][0];
                             $action = $matches[2][0];
@@ -293,24 +274,26 @@ class BaseController extends Controller
                 }
             } else {
                 $link = $value['link'];
-                list (, $module, $action,$function) = explode('/', $link);
+                list (, $module, $action, $function) = explode('/', $link);
                 
-                if (isset($function)&&$function){
-                    list($function) = explode('?', $function);
+                if (isset($function) && $function) {
+                    list ($function) = explode('?', $function);
                     
-                    if (isset($accessList[strtoupper($module)][strtoupper($action)][strtoupper($function)]) ||
-                            isset($_SESSION['administrator'])) {
-                                $value['access'] = 1;
-                                $menu[$key] = $value;
-                            }
-                }else {
-                    if (isset($accessList[strtoupper($module)][strtoupper($action)]) ||
-                            isset($_SESSION['administrator'])) {
-                                $value['access'] = 1;
-                                $menu[$key] = $value;
-                            }
+                    if (isset(
+                            $accessList[strtoupper($module)][strtoupper($action)][strtoupper(
+                                    $function)]) ||
+                             isset($_SESSION['administrator'])) {
+                        $value['access'] = 1;
+                        $menu[$key] = $value;
+                    }
+                } else {
+                    if (isset(
+                            $accessList[strtoupper($module)][strtoupper($action)]) ||
+                             isset($_SESSION['administrator'])) {
+                        $value['access'] = 1;
+                        $menu[$key] = $value;
+                    }
                 }
-
             }
         }
         

@@ -5,6 +5,7 @@ use Think\Controller;
 use Org\Util\Rbac;
 use Think\Model;
 use Home\Model\UserModel;
+use Think\Cache;
 
 class LoginController extends Controller
 {
@@ -20,6 +21,24 @@ class LoginController extends Controller
             $this->display();
         }
     }
+    
+    public function nodeList(){
+        $nodeList = array();
+        $userid = I('userid','');
+        
+
+        
+    }
+    
+    
+    
+    
+    
+    
+    
+    //--------------------
+    
+    
 
     public function checkLogin ()
     {

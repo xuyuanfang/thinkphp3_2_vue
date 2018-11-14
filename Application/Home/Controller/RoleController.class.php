@@ -1,6 +1,5 @@
 <?php
 namespace Home\Controller;
-
 use Home\Model\RoleModel;
 
 class RoleController extends BaseController
@@ -11,34 +10,26 @@ class RoleController extends BaseController
      */
     public function roleList ()
     {
+        $userid = I('userid', '');
         $model = new RoleModel();
-        $roleList = $model->getRoleList();
-        echoJson('0000','角色列表获取成功',$roleList);
+        $roleList = $model->getRoleList($userid);
+        echoJson($roleList, '0000', '角色列表获取成功', $model->getPageInfo());
     }
     
-    public function fixRoleList($list){
-        if (is_array($list)){
-            foreach ($list as $key => &$val){
-                if (isset($val['status'])&& $val['status']){
-                    $val['status'] = '启用';
-                }else{
-                    $val['status'] = '未启用';
-                }
-            }
+    // -------------------------
+    public function roleDel ()
+    {
+        $id = i('id');
+        $role = M('Role');
+        $where = array(
+                'id' => $id
+        );
+        $res = $role->where($where)->delete();
+        if ($res) {
+            $this->crmSuccess('删除成功');
+        } else {
+            $this->crmError('删除失败');
         }
-        return $list;
-    }
-    
-    public function roleDel(){
-    	$id = i('id');
-    	$role = M('Role');
-    	$where = array('id'=>$id);
-    	$res = $role->where($where)->delete();
-    	if ($res){
-    		$this->crmSuccess('删除成功');
-    	}else {
-    		$this->crmError('删除失败') ;
-    	}
     }
 
     /**
@@ -54,16 +45,16 @@ class RoleController extends BaseController
             $data['pid'] = 0;
             $data['status'] = I('post.rolestatus', 0);
             $data['remark'] = I('post.remark');
-            if (!$data['name']){
+            if (! $data['name']) {
                 $this->error('角色名必填');
             }
             
-            if (mbstrlen($data['name']) > 20){
+            if (mbstrlen($data['name']) > 20) {
                 $this->error('角色名必须小于20字');
             }
-            if (mbstrlen($data['remark']) > 20){
+            if (mbstrlen($data['remark']) > 20) {
                 $this->error('备注必须小于100字');
-            }           
+            }
             $r = $role->add($data);
             $this->crmSuccess('添加成功', U('/Home/Role/roleList'));
         }
@@ -78,14 +69,14 @@ class RoleController extends BaseController
         $Role = M('Role');
         if ('POST' == I('server.REQUEST_METHOD')) {
             
-            if (!$_POST['name']){
+            if (! $_POST['name']) {
                 $this->error('角色名必填');
             }
             
-            if (mbstrlen($_POST['name']) > 20){
+            if (mbstrlen($_POST['name']) > 20) {
                 $this->error('角色名必须小于20字');
             }
-            if (mbstrlen($_POST['remark']) > 20){
+            if (mbstrlen($_POST['remark']) > 20) {
                 $this->error('备注必须小于100字');
             }
             
@@ -120,7 +111,6 @@ class RoleController extends BaseController
             $funId = I('get.funId', '0');
             $rolelist = $Role->select();
             $where['level'] = 1;
-
             
             // 获取所有操作
             $nodelist = $Node->where($where)->select();
@@ -196,8 +186,9 @@ class RoleController extends BaseController
                 }
                 
                 unset($value);
-                //获取当前用户的控制器
-                $myActionList = $this->getMyActionList($id,$actionId,$groupActionList);
+                // 获取当前用户的控制器
+                $myActionList = $this->getMyActionList($id, $actionId, 
+                        $groupActionList);
             }
             $groupFunctionList = array();
             if (! empty($id) && ! empty($funId)) {
@@ -237,7 +228,6 @@ class RoleController extends BaseController
                 unset($value);
             }
             
-            
             $this->assign('actionlist', $actionList);
             $this->assign('myActionlist', $myActionList);
             $this->assign('funid', $funId);
@@ -252,21 +242,24 @@ class RoleController extends BaseController
             $this->display();
         }
     }
-    
-    private function getMyActionList($id,$actionId,$groupActionList){
+
+    private function getMyActionList ($id, $actionId, $groupActionList)
+    {
         $access = M("Access");
         $where['role_id'] = $id;
         $where['pid '] = $actionId;
         $where['level '] = 2;
-        $list = $access->where($where)->order(" node_id DESC ")->select();
+        $list = $access->where($where)
+            ->order(" node_id DESC ")
+            ->select();
         $myActionlist = array();
-        if($list){
-            foreach  ($list as $key => $val){
+        if ($list) {
+            foreach ($list as $key => $val) {
                 $node_id = $val['node_id'];
                 $node = M("Node");
                 $node_where['id'] = $node_id;
                 $node_res = $node->where($node_where)->select();
-                if($node_res){
+                if ($node_res) {
                     $node_res = $node_res[0];
                     $myActionlist[$node_res['id']] = $node_res['title'];
                 }
@@ -353,7 +346,7 @@ class RoleController extends BaseController
         $userid = I('post.user');
         $Role = D("Role");
         $Role->delGroupUser($role);
-       // $Role->delUserFromGroup($userid);
+        // $Role->delUserFromGroup($userid);
         $result = $Role->setGroupUsers($role, $userid);
         if ($result === false) {
             $this->crmError('授权失败', U("/Home/Role/roleUserList?id=$role"));
@@ -361,59 +354,59 @@ class RoleController extends BaseController
             $this->crmSuccess('授权成功', U("/Home/Role/roleUserList?id=$role"));
         }
     }
-    
+
     /**
      * 设置操作授权,level = 2 控制器授权
      */
-    public function setActionList(){
+    public function setActionList ()
+    {
         $groupId = I('post.groupId');
         $actionList = I('post.actionList');
         $moduleId = I('post.actionId');
         
         $access = M("Access");
-        $this->delActionList($groupId,$moduleId);
+        $this->delActionList($groupId, $moduleId);
         $access->startTrans();
         $falg = true;
-        foreach ($actionList as $key =>$val){
+        foreach ($actionList as $key => $val) {
             $res = $this->is_have_action($groupId, $val);
-            if (!$res){
-
-               $data['role_id'] = $groupId;
-               $data['node_id'] = $val;
-               $data['level'] = 2;
-               $data['pid'] = $moduleId;
-               $is_add = $access->add($data);
-               if (!$is_add){
-                   $access->rollback();
-                   $falg = false;
-               }
+            if (! $res) {
+                
+                $data['role_id'] = $groupId;
+                $data['node_id'] = $val;
+                $data['level'] = 2;
+                $data['pid'] = $moduleId;
+                $is_add = $access->add($data);
+                if (! $is_add) {
+                    $access->rollback();
+                    $falg = false;
+                }
             }
         }
-        if ($falg){
+        if ($falg) {
             $access->commit();
             $this->crmSuccess("授权成功");
-        }else {
-            $this->crmError("授权失败") ;
+        } else {
+            $this->crmError("授权失败");
         }
-        
-        
     }
-    
-    private function delActionList($groupId,$moduleId){
+
+    private function delActionList ($groupId, $moduleId)
+    {
         $access = M("Access");
         $where['role_id'] = $groupId;
         $where['pid'] = $moduleId;
         $where['level'] = 2;
         $access->where($where)->delete();
     }
-    
-    private function is_have_action($groupId,$actionId){
+
+    private function is_have_action ($groupId, $actionId)
+    {
         $access = M("Access");
         $where['role_id'] = $groupId;
         $where['node_id'] = $actionId;
         
-       return  $access->where($where)->select();
-        
+        return $access->where($where)->select();
     }
 
     /**
@@ -431,11 +424,11 @@ class RoleController extends BaseController
         $result = $group->setGroupActions($groupId, $id, $funid);
         
         if ($result === false) {
-            $this->crmError('修改失败',
+            $this->crmError('修改失败', 
                     U(
                             "/Home/Role/roleAuth?action=$action&id=$groupId&actionId=$moduleId"));
         } else {
-            $this->crmSuccess('修改成功',
+            $this->crmSuccess('修改成功', 
                     U(
                             "/Home/Role/roleAuth?action=$action&id=$groupId&actionId=$moduleId"));
         }

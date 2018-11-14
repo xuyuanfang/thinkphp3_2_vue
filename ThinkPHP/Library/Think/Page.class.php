@@ -69,6 +69,21 @@ class Page{
     private function url($page){
         return str_replace(urlencode('[PAGE]'), $page, $this->url);
     }
+    
+    public function  render(){
+        $this->totalPages = ceil($this->totalRows / $this->listRows); //总页数
+
+        return array(
+               //总条数
+              'totalRows' => $this->totalRows,  
+              //每页显示数
+              'listRows' => $this->listRows,  
+              //当前页数
+              'nowPage' => $this->nowPage,  
+              //总页数
+              'totalPages' => $this->totalPages,  
+        );
+    }
 
     /**
      * 组装分页链接
