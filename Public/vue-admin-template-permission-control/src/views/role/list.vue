@@ -3,49 +3,50 @@
     <el-table
       v-loading="listLoading"
       :data="list"
-      element-loading-text="Loading"
       border
-      fit
-      highlight-current-row>
-      <el-table-column align="center" label="ID" width="95">
+      element-loading-text="Loading"
+      :row-class-name="tableRowClassName"
+    >
+      <el-table-column align="center" label="序号" >
         <template slot-scope="scope">
           {{ scope.$index }}
         </template>
       </el-table-column>
-      <el-table-column label="Title">
+      <el-table-column label="id">
         <template slot-scope="scope">
-          {{ scope.row.title }}
+          {{ scope.row.id }}
         </template>
       </el-table-column>
-      <el-table-column label="Author" width="110" align="center">
+      <el-table-column label="角色名称"  align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.author }}</span>
+          <span>{{ scope.row.name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Pageviews" width="110" align="center">
+      <el-table-column label="操作" fixed="right">
         <template slot-scope="scope">
-          {{ scope.row.pageviews }}
+          <el-button
+                  size="mini"
+                  @click="handleEdit(scope.row.id)">编辑</el-button>
+          <el-button
+                  size="mini"
+                  type="danger"
+                  @click="handleDelete(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
-      <el-table-column class-name="status-col" label="Status" width="110" align="center">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter">{{ scope.row.status }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column align="center" prop="created_at" label="Display_time" width="200">
-        <template slot-scope="scope">
-          <i class="el-icon-time"/>
-          <span>{{ scope.row.display_time }}</span>
-        </template>
-      </el-table-column>
+
     </el-table>
+
+    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+
   </div>
 </template>
 
 <script>
 import { roleList } from '@/api/role'
+import Pagination from '@/components/Pagination' // Secondary package based on el-pagination
 
 export default {
+  components: { Pagination },
   filters: {
     statusFilter(status) {
       const statusMap = {
@@ -60,7 +61,11 @@ export default {
     return {
       list: null,
       listLoading: true,
-      listQuery: null
+      listQuery: {
+          page: 1,
+          limit: 1
+      },
+      total: 0
     }
   },
   created() {
@@ -69,11 +74,22 @@ export default {
   methods: {
     fetchData() {
       this.listLoading = true
+
       roleList(this.listQuery).then(response => {
-        console.log(response)
-        this.list = response.data.items
+
+        this.list = response.data
+        this.total = response.pageInfo.totalcount
+
         this.listLoading = false
       })
+    },
+    tableRowClassName({row, rowIndex}) {
+        if ((rowIndex % 2) == 0) {
+            return 'warning-row';
+        } else {
+            return 'success-row';
+        }
+        return '';
     }
   }
 }

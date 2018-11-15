@@ -148,7 +148,7 @@ export const asyncRouterMap = [
     children: [
     {
         path: 'list',
-          name: 'Form',
+          name: 'role/list',
           component: () => import('@/views/role/list'),
           meta: { title: '角色列表', icon: 'form' }
      }
