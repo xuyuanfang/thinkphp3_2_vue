@@ -36,7 +36,7 @@
 
     </el-table>
 
-    <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
+    <pagination v-show="total>0" :total="total" :pageSizes.sync="pageSizes" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="fetchData" />
 
   </div>
 </template>
@@ -58,12 +58,13 @@ export default {
     }
   },
   data() {
+
     return {
       list: null,
       listLoading: true,
       listQuery: {
           page: 1,
-          limit: 1
+          limit: 10
       },
       total: 0
     }
@@ -74,14 +75,23 @@ export default {
   methods: {
     fetchData() {
       this.listLoading = true
+        console.log(this.$route)
+        if(this.$route.query.page){
+            this.listQuery.page = parseInt(this.$route.query.page)
+        }
+        if(this.$route.query.limit){
+            this.listQuery.limit = parseInt(this.$route.query.limit)
+        }
 
       roleList(this.listQuery).then(response => {
-
         this.list = response.data
-        this.total = response.pageInfo.totalcount
-
+        this.total = parseInt(response.pageInfo.totalcount)
+        this.listQuery.limit = parseInt(response.pageInfo.limit)
         this.listLoading = false
       })
+    },
+    handleFilter() {
+        this.fetchData()
     },
     tableRowClassName({row, rowIndex}) {
         if ((rowIndex % 2) == 0) {
